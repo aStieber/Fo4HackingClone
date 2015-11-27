@@ -2,6 +2,11 @@ import os, sys, random, pygame
 from pygame.locals import *
 pygame.init()
 
+class charObject(object):
+	def __init__(self, _tmpText, _tmpPos):
+		self.charGraphic = _tmpText
+		self.charPos = _tmpPos
+
 class renderingClass(object):
 	def __init__(self, _textObject):
 		#Screen
@@ -9,9 +14,7 @@ class renderingClass(object):
 		self.background = None
 
 		self.textObject = _textObject
-		self.fullTextSurface = None
-
-		self.SubSurfaceArray = []
+		self.charObjectArray = []
 
 		self.initializeDisplay()
 
@@ -25,40 +28,63 @@ class renderingClass(object):
 		self.background = self.background.convert()
 		self.background.fill(backgroundColor)
 
-		self.fullTextSurface = pygame.Surface(((self.textObject.fullLength*12), 26)) #4896 by default, 12 is char width
-		self.fullTextSurface.fill(backgroundColor)
-
 		self.screen.blit(self.background, (0,0))
 		pygame.display.flip()
 
 
 	def createFontSurface(self):
 		font = pygame.font.SysFont("Inconsolata", 24) #(12, 26)
+			
+		tmpY = 25
+		
+
 		for x in range(self.textObject.fullLength): #works!
 			tmp = font.render(self.textObject.fullText[x], True, (10, 10, 10))
-			tmppos = tmp.get_rect(centerx=(6 + (12 * x)))
-			self.fullTextSurface.blit(tmp, tmppos)
 
-	def createSubSections(self):
-		for x in range(34):
-			tmpRect = pygame.Rect((144 * x, 0), (144, 26)) #Rect((left, top), (width, height)) 
-			self.SubSurfaceArray.append(self.fullTextSurface.subsurface(tmpRect))
+			tmpX = 50
+		
+			if (x == 204):
+				tmpY = 25
+			if (x >= 204): #408/2
+				tmpX = 256
 
-	def renderPuzzle(self):
-		for x in range(34):
-			if x < 17:
-				tmppos = pygame.Rect((50, 25 + (x * 30)), (144, 26))
-			else:
-				tmppos = pygame.Rect((256, 25 + ((x-17) * 30)), (144, 26))
-			self.screen.blit(self.SubSurfaceArray[x], tmppos)
+			if (x%12 == 0 and x != 0 and x != 204):
+				print("yehyaernst")
+				tmpY += 30
+			tmpX += ((x%12)*12)
+			
+			tmppos = tmp.get_rect(x = tmpX, y = tmpY)
+
+			self.charObjectArray.append(charObject(tmp, tmppos))
+			
+
+
+
+	def renderFontSurface(self):
+		for x in range(self.textObject.fullLength):
+			self.screen.blit(self.charObjectArray[x].charGraphic, self.charObjectArray[x].charPos)
+
+	def highlightFontSurface(self, charIndex):
+		inv = pygame.Surface(self.charObjectArray[charIndex].charGraphic.get_rect().size, pygame.SRCALPHA)
+		inv.fill((255,255,255))
+		inv.blit(self.charObjectArray[charIndex].charGraphic, (0,0), None, BLEND_RGB_SUB)
+		return inv
+				
+
+
 
 	def getUnderMouse(self, location):
-		print(location[0], ' ', location[1])
+		for x in range(self.textObject.fullLength):
+			if (self.charObjectArray[x].charPos.collidepoint(location[0], location[1])):
+				print('oh fuku yes')
+				self.screen.blit(self.highlightFontSurface(x), self.charObjectArray[x].charPos)
+				pygame.display.flip()
+				return
+			print ('shit')
 
 
 
 	def FirstTimeGenerate(self):
 		self.createFontSurface()
-		self.createSubSections()
-		self.renderPuzzle()
+		self.renderFontSurface()
 		pygame.display.flip()
