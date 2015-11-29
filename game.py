@@ -1,7 +1,7 @@
 import os, sys, random, pygame, math
 from pygame.locals import *
 
-class logicArray(object):
+class Sequence(object):
 	def __init__(self, _index, _phraseLength, _isWinningWord=False,
 		_isRemoveDud=False, _isResetTries=False):
 		#super(gameArray, self).__init__()
@@ -18,7 +18,7 @@ class text(object):
 		# super(text, self).__init__()
 		self.wordLength = arg1
 		self.fullLength = arg2
-		self.lArray = [] #array for the logicArray objects
+		self.lArray = [] #array for the Sequence objects
 
 		self.fullText = []
 		self.curatedList = []
@@ -63,9 +63,10 @@ class text(object):
 					brace = ['(', ')']
 
 				for y in range(x%12, (math.ceil((x%12)/12)*12)): #rofl, sets the range from x%12 to the next multiple of 12 above x%12
+					print(y)
 					if self.fullText[y] == brace[1]: #if appropriate closing bracket found
 						numBracesFound += 1
-						self.lArray.append(logicArray(x, y - (x%12), False, True))
+						self.lArray.append(Sequence(x, y - (x%12), False, True))
 						break
 		#triesReset
 		if numBracesFound < 3 or numBracesFound > 10:
@@ -92,7 +93,7 @@ class text(object):
 			for x in range(0, self.wordLength):
 				#print("pointer: ", pointer, "fullText: ", len(self.fullText), "listcounter: ", listcounter, "curatedList: ", len(self.curatedList))
 				self.fullText[pointer+x] = self.curatedList[listcounter][x] #the pointer is at the end of the word. after this for loop
-			self.lArray.append(logicArray((pointer-self.wordLength), self.wordLength)) #at end of every word, add its stuff to the lArray
+			self.lArray.append(Sequence(pointer, self.wordLength)) #at end of every word, add its stuff to the lArray
 			listcounter += 1
 			pointer += (random.randint(minGap, maxGap) + self.wordLength)
 			#end of while loop
@@ -106,7 +107,8 @@ class text(object):
 			self.wordInserter()
 			if (self.findBraces()):
 				return
-			self.__init__(self.wordLength)
+			else:
+				self.__init__(self.wordLength)
 			
 		#at this point we have a text object with everything for the game set up.
 		return
