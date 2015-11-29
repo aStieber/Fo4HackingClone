@@ -80,7 +80,7 @@ class renderingClass(object):
 				self.screen.blit(self.highlightFontSurface(x), self.charObjectArray[x].charPos)
 				pygame.display.flip()
 				return
-			print ('shit')
+			#print ('shit')
 
 
 

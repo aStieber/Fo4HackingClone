@@ -1,8 +1,10 @@
 import os, sys, random, pygame, game, display
 from pygame.locals import *
+#this doesn't work yet
 
 
-#https://www.pygame.org/docs/tut/chimp/ChimpLineByLine.html
+
+
 
 
 clock = pygame.time.Clock()

@@ -5,7 +5,10 @@ class logicArray(object):
 	def __init__(self, _index, _phraseLength, _isWinningWord=False,
 		_isRemoveDud=False, _isResetTries=False):
 		#super(gameArray, self).__init__()
+
+		#index is char index the phrase starts on
 		self.index = _index
+		#obvious
 		self.phraseLength = _phraseLength
 		self.isWinningWord = _isWinningWord
 
