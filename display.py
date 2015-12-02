@@ -13,7 +13,9 @@ class renderingClass(object):
 		self.screen = None
 		self.background = None
 
+		#game.text object
 		self.textObject = _textObject
+		#assigning this display object to game.text.displayObject
 		_textObject.displayObject = self
 
 		
@@ -37,8 +39,9 @@ class renderingClass(object):
 		self.screen.blit(self.background, (0,0))
 		pygame.display.flip()
 
-
+#this function builds charObjectArray[]
 	def createFontSurface(self):
+		self.charObjectArray = []
 		font = pygame.font.SysFont("Inconsolata", 24) #(12, 26)
 			
 		tmpY = 25

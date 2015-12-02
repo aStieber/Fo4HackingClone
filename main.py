@@ -10,17 +10,14 @@ from pygame.locals import *
 clock = pygame.time.Clock()
 
 
+#adjust this for difficulty
+wordLength = 5
+theGame = game.text(wordLength)
 
+theGame.FirstTimeGenerate()
 
-
-theGame = game.text(8)
-theGame.textRunner()#calls the function that runs everything
-
-theDisplay = display.renderingClass(theGame)#start here
+theDisplay = display.renderingClass(theGame)
 theDisplay.FirstTimeGenerate()
-
-# for x in theGame.lArray:
-# 	print(x.index)
 
 #MAIN LOOP
 while True:

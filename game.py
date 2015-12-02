@@ -23,6 +23,7 @@ class text(object):
 
 		self.lArray = [] #array for the Sequence objects
 		self.winningWord = None
+		self.numTries = 4
 
 		self.fullText = []
 		self.curatedList = []
@@ -113,7 +114,7 @@ class text(object):
 		return
 
 
-	def textRunner(self):
+	def FirstTimeGenerate(self):
 		while(True):
 			self.charGen()
 			self.wordPopulator()
@@ -137,37 +138,52 @@ class text(object):
 			if tmp[x] == self.winningWord[x]:
 				counter += 1
 		return counter
-		
-
-
 
 	def userClicked(self, mouseLocation):
 		counter = 0
 		for SeqObject in self.lArray:
 			iiP = self.displayObject.isInPhrase(SeqObject, mouseLocation)
 			if (iiP == 'word'):
-				if SeqObject.isWinningWord == True:
+				if SeqObject.isWinningWord:
 					print("you did it hooray")
 					sys.exit()
 				#if wrong word	
 				else:
-					print(str(self.numCorrect(SeqObject.index, SeqObject.phraseLength)) + ' correct')
-					for x in range(SeqObject.index, SeqObject.index + SeqObject.phraseLength):
-						self.fullText[x] = '.'
-
+					self.numTries -= 1
+					if self.numTries <= 0:
+						print("Out of tries. Game Over.")
+						sys.exit()
+					print(str(self.numCorrect(SeqObject.index, SeqObject.phraseLength)) + ' correct, ', self.numTries, " tries remaining.")		
 					self.lArray.pop(counter)
+					counter -= 1
 					self.displayObject.createFontSurface()
 
+			if (iiP == 'brace'):
+				#if the brace set is RemoveDud
+				if SeqObject.isRemoveDud:
+					while True:
+						rando = random.randint(0, len(self.lArray))
+						#if the randomly selected doomed item is a word and isn't the winning word
+						if self.lArray[rando].isWord and not self.lArray[rando].isWinningWord:
+							print("Dud removed.")
+							for x in range(self.lArray[rando].index, self.lArray[rando].index + self.lArray[rando].phraseLength):
+								self.fullText[x] = '.'
+							self.lArray.pop(counter)
+							self.lArray.pop(rando)
+							counter -= 2
+							break
 
+				elif SeqObject.isResetTries:
+					print("Tries Reset")
+					self.numTries = 4
+					self.lArray.pop(counter)
+					counter -= 1
 
-
-
-
-
-
+			#this keeps track of which item in lArray we're accessing. Necessary for removing items.
 			counter += 1
 
 		self.displayObject.createFontSurface()
+		self.displayObject.renderFontSurface()
 		pygame.display.flip()
 
 
