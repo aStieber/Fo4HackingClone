@@ -14,6 +14,9 @@ class renderingClass(object):
 		self.background = None
 
 		self.textObject = _textObject
+		_textObject.displayObject = self
+
+		
 		self.charObjectArray = []
 
 		self.backgroundColor = (200, 200, 200)
@@ -62,32 +65,66 @@ class renderingClass(object):
 			self.screen.blit(self.charObjectArray[x].charGraphic, self.charObjectArray[x].charPos)
 
 	def highlightFontSurface(self, charIndex):
-		inv = pygame.Surface((12, 26), pygame.SRCALPHA)
-		inv.fill((255,255,255))
-		inv.blit(self.charObjectArray[charIndex].charGraphic, (0,0), None, BLEND_RGB_SUB)
-		return inv
+			inv = pygame.Surface((12, 26), pygame.SRCALPHA)
+			inv.fill((255,255,255))
+			inv.blit(self.charObjectArray[charIndex].charGraphic, (0,0), None, BLEND_RGB_SUB)
+			return inv
 
-	def decideHighlight(self):
+	def getMouseLocation(self, _mousePos):
+			for x in range(self.textObject.fullLength):
+				if (self.charObjectArray[x].charPos.collidepoint(_mousePos[0], _mousePos[1])):
+					return(x)
+			return(-1)
 
+	def isInPhrase(self, sequenceObject, mouseLocation):
+		x = sequenceObject
+			#if word
+		if x.isWord == True:
+			if (x.index <= mouseLocation <= (x.index + x.phraseLength - 1)):
+	 			return('word')
+		#if brace sequence
+		else:
+			if (x.index == mouseLocation):
+				return('brace')
+		return -1
+
+	def runHighlights(self, _mousePos):
+		mouseLocation = self.getMouseLocation(_mousePos)
+
+		#unhighlights when mouse isn't on screen
+		if (mouseLocation == -1):
+			self.renderFontSurface()
+			pygame.display.flip()
+			return
+
+		#unhighlight previous mouseover
+		self.screen.blit(self.charObjectArray[self.prevMouseOver].charGraphic, self.charObjectArray[self.prevMouseOver].charPos)
+
+		multiHighlight = False
+		#check to see if given char is index of a Sequence
+		#Words are highlighted when any of their letters are moused over
+		#brace strings require the index of the phrase to be moused over
+		for y in self.textObject.lArray:
+			iiP = self.isInPhrase(y, mouseLocation)
+			if (iiP == 'word'):		
+				multiHighlight = True
+				for z in range(y.phraseLength):
+					#blit an inverted version of the font to each char in the word
+					self.screen.blit(self.highlightFontSurface(y.index+z), self.charObjectArray[y.index+z].charPos)
+		#if brace sequence
+			elif (iiP == 'brace'):	
+				multiHighlight = True
+				for z in range(y.phraseLength):
+					#blit an inverted version of the font to each char in the brace phrase
+					self.screen.blit(self.highlightFontSurface(y.index+z), self.charObjectArray[y.index+z].charPos)
+		if not multiHighlight:
+			self.renderFontSurface()
+
+
+		self.screen.blit(self.highlightFontSurface(mouseLocation), self.charObjectArray[mouseLocation].charPos)
+		self.prevMouseOver = mouseLocation
+		pygame.display.flip()
 		return
-
-
-	def getUnderMouse(self, location):
-		for x in range(self.textObject.fullLength):
-			if (self.charObjectArray[x].charPos.collidepoint(location[0], location[1])):
-				if (x == self.prevMouseOver):
-					return
-				#check to see if given char is index of a Sequence
-				for y in range(len(self.textObject.lArray)):
-				 	if (self.textObject.lArray[y].index == x):
-				 		for z in range(self.textObject.lArray[y].phraseLength):
-
-				 			self.screen.blit(self.highlightFontSurface(x+z), self.charObjectArray[x+z].charPos)
-				self.screen.blit(self.charObjectArray[self.prevMouseOver].charGraphic, self.charObjectArray[self.prevMouseOver].charPos)
-				self.screen.blit(self.highlightFontSurface(x), self.charObjectArray[x].charPos)
-				self.prevMouseOver = x
-				pygame.display.flip()
-				return
 
 	def FirstTimeGenerate(self):
 		#for x in range(len(self.textObject.lArray)):
@@ -95,3 +132,4 @@ class renderingClass(object):
 		self.createFontSurface()
 		self.renderFontSurface()
 		pygame.display.flip()
+		

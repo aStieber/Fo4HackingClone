@@ -1,12 +1,14 @@
-import os, sys, random, pygame, math
+import os, sys, random, pygame, math, string
 from pygame.locals import *
 
 class Sequence(object):
-	def __init__(self, _index, _phraseLength, _isWinningWord=False,
+	def __init__(self, _index, _phraseLength, _isWord =False, _isWinningWord=False,
 		_isRemoveDud=False, _isResetTries=False):
 		#super(gameArray, self).__init__()
 		self.index = _index
 		self.phraseLength = _phraseLength
+
+		self.isWord = _isWord
 		self.isWinningWord = _isWinningWord
 
 		#for braces
@@ -18,10 +20,14 @@ class text(object):
 		# super(text, self).__init__()
 		self.wordLength = arg1
 		self.fullLength = arg2
+
 		self.lArray = [] #array for the Sequence objects
+		self.winningWord = None
 
 		self.fullText = []
 		self.curatedList = []
+
+		self.displayObject = None
 
 	def charDecider(self, percent=.25): #tweak percent as needed
 		fillerArr = ['!', '@', '#', '?', '$', '%', '^', '*', '-', '+', '=', ',', '.', '\\', '/', ':', ';', '|']
@@ -40,7 +46,7 @@ class text(object):
 		
 
 	def wordPopulator(self):
-		inFile = open(str(self.wordLength) + 'list.txt', 'r')
+		inFile = open('wordlists/' + str(self.wordLength) + 'list.txt', 'r')
 		fullListofWords = inFile.readlines()
 		inFile.close()
 
@@ -53,7 +59,7 @@ class text(object):
 		#closeBrace = ['>', '}', ')']
 		lArrayPreSize = len(self.lArray)
 		numBracesFound = 0
-		for x in range(0, self.fullLength):
+		for x in range(self.fullLength):
 			if (self.fullText[x] in openBrace):
 				if self.fullText[x] == '<':
 					brace = ['<', '>']
@@ -62,12 +68,18 @@ class text(object):
 				elif self.fullText[x] == '(':
 					brace = ['(', ')']
 
-				for y in range(x%12, (math.ceil((x%12)/12)*12)): #rofl, sets the range from x%12 to the next multiple of 12 above x%12
-					print(y)
-					if self.fullText[y] == brace[1]: #if appropriate closing bracket found
-						numBracesFound += 1
-						self.lArray.append(Sequence(x, y - (x%12), False, True))
-						break
+				lRange = x
+				#next multiple of 12 above x
+				uRange = math.ceil(x/12) * 12
+				for y in range(lRange, uRange):
+					#if there's a letter, stop
+					if not self.fullText[y].isupper():
+						#if correct closing bracket found
+						if self.fullText[y] == brace[1]:
+							numBracesFound += 1
+							self.lArray.append(Sequence(x, y - x + 1, _isRemoveDud=True))
+							break
+
 		#triesReset
 		if numBracesFound < 3 or numBracesFound > 10:
 			return(False)
@@ -81,7 +93,6 @@ class text(object):
 		return(True)
 
 
-
 #inserts words into fullText from curatedList. Also populates lArray.
 	def wordInserter(self):  
 		minGap = 3
@@ -91,13 +102,14 @@ class text(object):
 		
 		while pointer < (self.fullLength - self.wordLength):
 			for x in range(0, self.wordLength):
-				#print("pointer: ", pointer, "fullText: ", len(self.fullText), "listcounter: ", listcounter, "curatedList: ", len(self.curatedList))
 				self.fullText[pointer+x] = self.curatedList[listcounter][x] #the pointer is at the end of the word. after this for loop
-			self.lArray.append(Sequence(pointer, self.wordLength)) #at end of every word, add its stuff to the lArray
+			self.lArray.append(Sequence(pointer, self.wordLength, _isWord=True)) #at end of every word, add its stuff to the lArray
 			listcounter += 1
 			pointer += (random.randint(minGap, maxGap) + self.wordLength)
 			#end of while loop
-		self.lArray[random.randint(0, len(self.lArray) - 1)].isWinningWord = True #decide the winning word
+		rando = random.randint(0, len(self.lArray) - 1)
+		self.winningWord = self.assembleString(rando, rando + self.wordLength)
+		self.lArray[rando].isWinningWord = True #decide the winning word
 		return
 
 
@@ -110,6 +122,53 @@ class text(object):
 				return
 			else:
 				self.__init__(self.wordLength)
+
+	def assembleString(self, index, phraseLength):
+		tmp = []
+		for x in range(index, index + phraseLength):
+			tmp.append(self.fullText[x])
+		return(''.join(tmp))
 			
-		#at this point we have a text object with everything for the game set up.
-		return
+
+	def numCorrect(self, index, phraseLength):
+		tmp = self.assembleString(index, phraseLength)
+		counter = 0
+		for x in range(phraseLength):
+			if tmp[x] == self.winningWord[x]:
+				counter += 1
+		return counter
+		
+
+
+
+	def userClicked(self, mouseLocation):
+		counter = 0
+		for SeqObject in self.lArray:
+			iiP = self.displayObject.isInPhrase(SeqObject, mouseLocation)
+			if (iiP == 'word'):
+				if SeqObject.isWinningWord == True:
+					print("you did it hooray")
+					sys.exit()
+				#if wrong word	
+				else:
+					print(str(self.numCorrect(SeqObject.index, SeqObject.phraseLength)) + ' correct')
+					for x in range(SeqObject.index, SeqObject.index + SeqObject.phraseLength):
+						self.fullText[x] = '.'
+
+					self.lArray.pop(counter)
+					self.displayObject.createFontSurface()
+
+
+
+
+
+
+
+
+			counter += 1
+
+		self.displayObject.createFontSurface()
+		pygame.display.flip()
+
+
+
