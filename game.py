@@ -30,7 +30,7 @@ class text(object):
 
 		self.displayObject = None
 
-	def charDecider(self, percent=.25): #tweak percent as needed
+	def charDecider(self, percent=.3): #tweak percent as needed
 		fillerArr = ['!', '@', '#', '?', '$', '%', '^', '*', '-', '+', '=', ',', '.', '\\', '/', ':', ';', '|']
 		bracesArr = ['<', '>', '{', '}', '(', ')']
 		if random.random() <= percent: #the higher percent is, the more likely braces are to be selected
@@ -71,7 +71,7 @@ class text(object):
 
 				lRange = x
 				#next multiple of 12 above x
-				uRange = math.ceil(x/12) * 12
+				uRange = math.ceil((x+1)/12) * 12
 				for y in range(lRange, uRange):
 					#if there's a letter, stop
 					if not self.fullText[y].isupper():
@@ -80,6 +80,8 @@ class text(object):
 							numBracesFound += 1
 							self.lArray.append(Sequence(x, y - x + 1, _isRemoveDud=True))
 							break
+					else:
+						break
 
 		#triesReset
 		if numBracesFound < 3 or numBracesFound > 10:
@@ -185,6 +187,3 @@ class text(object):
 		self.displayObject.createFontSurface()
 		self.displayObject.renderFontSurface()
 		pygame.display.flip()
-
-
-

@@ -111,12 +111,14 @@ class renderingClass(object):
 			iiP = self.isInPhrase(y, mouseLocation)
 			if (iiP == 'word'):		
 				multiHighlight = True
+				self.renderFontSurface()
 				for z in range(y.phraseLength):
 					#blit an inverted version of the font to each char in the word
 					self.screen.blit(self.highlightFontSurface(y.index+z), self.charObjectArray[y.index+z].charPos)
 		#if brace sequence
 			elif (iiP == 'brace'):	
 				multiHighlight = True
+				self.renderFontSurface()
 				for z in range(y.phraseLength):
 					#blit an inverted version of the font to each char in the brace phrase
 					self.screen.blit(self.highlightFontSurface(y.index+z), self.charObjectArray[y.index+z].charPos)
@@ -135,4 +137,3 @@ class renderingClass(object):
 		self.createFontSurface()
 		self.renderFontSurface()
 		pygame.display.flip()
-		

@@ -1,17 +1,12 @@
 import os, sys, random, pygame, game, display
 from pygame.locals import *
-#this doesn't work yet
 
 
-
-
-
-
-clock = pygame.time.Clock()
+random.seed(225)
 
 
 #adjust this for difficulty
-wordLength = 5
+wordLength = 4
 theGame = game.text(wordLength)
 
 theGame.FirstTimeGenerate()
