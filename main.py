@@ -1,10 +1,6 @@
 import os, sys, random, pygame, game, display
 from pygame.locals import *
 
-
-random.seed(225)
-
-
 #adjust this for difficulty
 wordLength = 4
 theGame = game.text(wordLength)
@@ -15,7 +11,7 @@ theDisplay = display.renderingClass(theGame)
 theDisplay.FirstTimeGenerate()
 
 #MAIN LOOP
-while True:
+while not theGame.getGameOver():
  	for event in pygame.event.get():
  		if (event.type == QUIT):
  			sys.exit()
@@ -29,3 +25,12 @@ while True:
 
  		else:
  			pygame.event.clear() #use this to clear the queue when the mouse leaves the window.
+ 		pygame.display.flip()
+#this is triggered after the game ends
+print("shoarsietn")
+while True:
+	for event in pygame.event.get():
+		if (event.type == MOUSEBUTTONDOWN):
+			sys.exit()
+		else:
+			pygame.event.clear()

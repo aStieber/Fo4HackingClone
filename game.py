@@ -1,19 +1,29 @@
-import os, sys, random, pygame, math, string
+import os, sys, random, pygame, math
 from pygame.locals import *
 
 class Sequence(object):
-	def __init__(self, _index, _phraseLength, _isWord =False, _isWinningWord=False,
-		_isRemoveDud=False, _isResetTries=False):
+	def __init__(self, _index, _phraseLength, _gameClass=None, _isWord =False,
+		_isRemoveDud=False, _isResetTries=False,):
 		#super(gameArray, self).__init__()
 		self.index = _index
 		self.phraseLength = _phraseLength
+		self.phraseText = None
+		self.gameClass = _gameClass
 
 		self.isWord = _isWord
-		self.isWinningWord = _isWinningWord
 
 		#for braces
 		self.isRemoveDud = _isRemoveDud
 		self.isResetTries = _isResetTries
+
+		self.buildPhraseText()
+
+	def buildPhraseText(self):
+		tmp = []
+		for x in range(self.index, self.index + self.phraseLength):
+			tmp.append(self.gameClass.fullText[x])
+		self.phraseText = ''.join(tmp)
+
 
 class text(object):
 	def __init__(self, arg1, arg2=408):
@@ -25,10 +35,15 @@ class text(object):
 		self.winningWord = None
 		self.numTries = 4
 
+		self.gameOver = False
+
 		self.fullText = []
 		self.curatedList = []
 
 		self.displayObject = None
+
+	def getGameOver(self):
+		return self.gameOver
 
 	def charDecider(self, percent=.3): #tweak percent as needed
 		fillerArr = ['!', '@', '#', '?', '$', '%', '^', '*', '-', '+', '=', ',', '.', '\\', '/', ':', ';', '|']
@@ -78,7 +93,7 @@ class text(object):
 						#if correct closing bracket found
 						if self.fullText[y] == brace[1]:
 							numBracesFound += 1
-							self.lArray.append(Sequence(x, y - x + 1, _isRemoveDud=True))
+							self.lArray.append(Sequence(x, y - x + 1, _isRemoveDud=True, _gameClass=self))
 							break
 					else:
 						break
@@ -106,15 +121,13 @@ class text(object):
 		while pointer < (self.fullLength - self.wordLength):
 			for x in range(0, self.wordLength):
 				self.fullText[pointer+x] = self.curatedList[listcounter][x] #the pointer is at the end of the word. after this for loop
-			self.lArray.append(Sequence(pointer, self.wordLength, _isWord=True)) #at end of every word, add its stuff to the lArray
+			self.lArray.append(Sequence(pointer, self.wordLength, _isWord=True, _gameClass=self)) #at end of every word, add its stuff to the lArray
 			listcounter += 1
 			pointer += (random.randint(minGap, maxGap) + self.wordLength)
 			#end of while loop
 		rando = random.randint(0, len(self.lArray) - 1)
-		self.winningWord = self.assembleString(rando, rando + self.wordLength)
-		self.lArray[rando].isWinningWord = True #decide the winning word
+		self.winningWord = self.lArray[rando] #decide winning word
 		return
-
 
 	def FirstTimeGenerate(self):
 		while(True):
@@ -124,38 +137,35 @@ class text(object):
 			if (self.findBraces()):
 				return
 			else:
-				self.__init__(self.wordLength)
+				self.__init__(self.wordLength)		
 
-	def assembleString(self, index, phraseLength):
-		tmp = []
-		for x in range(index, index + phraseLength):
-			tmp.append(self.fullText[x])
-		return(''.join(tmp))
-			
-
-	def numCorrect(self, index, phraseLength):
-		tmp = self.assembleString(index, phraseLength)
-		counter = 0
-		for x in range(phraseLength):
-			if tmp[x] == self.winningWord[x]:
-				counter += 1
-		return counter
+	def numCorrect(self, seq):
+		count = 0
+		for x in range(self.wordLength):
+			if (self.winningWord.phraseText[x] == seq.phraseText[x]):
+				count += 1
+		return(count)		
 
 	def userClicked(self, mouseLocation):
 		counter = 0
 		for SeqObject in self.lArray:
 			iiP = self.displayObject.isInPhrase(SeqObject, mouseLocation)
 			if (iiP == 'word'):
-				if SeqObject.isWinningWord:
-					print("you did it hooray")
-					sys.exit()
+				if SeqObject == self.winningWord:
+					self.displayObject.ConsoleRender(SeqObject.phraseText, 'You Won!')
+					self.displayObject.ConsoleRender(lowerLine="Click to exit.")
+					self.gameOver = True
+					return
 				#if wrong word	
 				else:
 					self.numTries -= 1
 					if self.numTries <= 0:
-						print("Out of tries. Game Over.")
-						sys.exit()
-					print(str(self.numCorrect(SeqObject.index, SeqObject.phraseLength)) + ' correct, ', self.numTries, " tries remaining.")		
+						self.displayObject.renderTries()
+						self.displayObject.ConsoleRender(SeqObject.phraseText, 'Out of tries.')
+						self.displayObject.ConsoleRender(lowerLine="Click to exit.")
+						self.gameOver = True
+						return
+					self.displayObject.ConsoleRender(SeqObject.phraseText, ''.join([str(self.numCorrect(SeqObject)), '/', str(self.wordLength), ' correct.']))
 					self.lArray.pop(counter)
 					counter -= 1
 					self.displayObject.createFontSurface()
@@ -166,8 +176,8 @@ class text(object):
 					while True:
 						rando = random.randint(0, len(self.lArray))
 						#if the randomly selected doomed item is a word and isn't the winning word
-						if self.lArray[rando].isWord and not self.lArray[rando].isWinningWord:
-							print("Dud removed.")
+						if self.lArray[rando].isWord and not (self.lArray[rando] == self.winningWord):
+							self.displayObject.ConsoleRender(SeqObject.phraseText, 'Dud Removed.')
 							for x in range(self.lArray[rando].index, self.lArray[rando].index + self.lArray[rando].phraseLength):
 								self.fullText[x] = '.'
 							self.lArray.pop(counter)
@@ -176,14 +186,13 @@ class text(object):
 							break
 
 				elif SeqObject.isResetTries:
-					print("Tries Reset")
+					self.displayObject.ConsoleRender(SeqObject.phraseText, 'Tries Reset.')
 					self.numTries = 4
 					self.lArray.pop(counter)
 					counter -= 1
 
 			#this keeps track of which item in lArray we're accessing. Necessary for removing items.
 			counter += 1
-
+		self.displayObject.renderTries()
 		self.displayObject.createFontSurface()
 		self.displayObject.renderFontSurface()
-		pygame.display.flip()

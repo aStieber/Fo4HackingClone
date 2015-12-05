@@ -18,12 +18,14 @@ class renderingClass(object):
 		#assigning this display object to game.text.displayObject
 		_textObject.displayObject = self
 
-		
 		self.charObjectArray = []
+		self.consoleArray = []
 
 		self.backgroundColor = (200, 200, 200)
 		#for mouseover detection
 		self.prevMouseOver = 0
+
+		self.font = pygame.font.SysFont("Inconsolata", 24) #(12, 26)
 
 		self.initializeDisplay()
 
@@ -42,11 +44,11 @@ class renderingClass(object):
 #this function builds charObjectArray[]
 	def createFontSurface(self):
 		self.charObjectArray = []
-		font = pygame.font.SysFont("Inconsolata", 24) #(12, 26)
+		
 			
 		tmpY = 25
 		for x in range(self.textObject.fullLength): #works!
-			tmp = font.render(self.textObject.fullText[x], True, (10, 10, 10), self.backgroundColor)
+			tmp = self.font.render(self.textObject.fullText[x], True, (10, 10, 10), self.backgroundColor)
 
 			tmpX = 50
 		
@@ -79,6 +81,7 @@ class renderingClass(object):
 					return(x)
 			return(-1)
 
+	#returns whether the selected char is part of a word, a brace, or nothing (-1)
 	def isInPhrase(self, sequenceObject, mouseLocation):
 		x = sequenceObject
 			#if word
@@ -128,12 +131,43 @@ class renderingClass(object):
 
 		self.screen.blit(self.highlightFontSurface(mouseLocation), self.charObjectArray[mouseLocation].charPos)
 		self.prevMouseOver = mouseLocation
-		pygame.display.flip()
 		return
+
+
+	def ConsoleRender(self, upperLine=None, lowerLine=None): #450, 490
+		consoleBG = pygame.Surface((260, 480))
+		consoleBG.fill(self.backgroundColor)
+		self.screen.blit(consoleBG, (450, 50))
+
+		self.consoleArray.insert(0, upperLine)
+		self.consoleArray.insert(0, lowerLine)
+
+		consoleLength = len(self.consoleArray)
+		for x in range(consoleLength):
+			tmp = self.font.render(self.consoleArray[x], True, (10, 10, 10), self.backgroundColor)
+			consoleBG.blit(tmp, (0, 450 - (30 * x)))
+		self.screen.blit(consoleBG, (450, 50))
+		
+
+	def renderTries(self):
+		triesFont = pygame.font.SysFont("Consolas", 28) #(12, 26)
+		triesBG = pygame.Surface((90, 32))
+		triesBG.fill(self.backgroundColor)
+		self.screen.blit(triesBG, (450, 10))
+		pygame.display.flip()
+
+		for x in range(self.textObject.numTries):
+			#u"\u25A0" is unicode square
+			tmp = triesFont.render(u"\u25A0", True, (10, 10, 10), self.backgroundColor)
+			triesBG.blit(tmp, (x * 22, 0))
+		self.screen.blit(triesBG, (450, 10))
+
+
 
 	def FirstTimeGenerate(self):
 		#for x in range(len(self.textObject.lArray)):
 		#	print("index: ", self.textObject.lArray[x].index, "\nphrase length: ", self.textObject.lArray[x].phraseLength)
+		self.renderTries()
 		self.createFontSurface()
 		self.renderFontSurface()
 		pygame.display.flip()
