@@ -27,7 +27,6 @@ while not theGame.getGameOver():
  			pygame.event.clear() #use this to clear the queue when the mouse leaves the window.
  		pygame.display.flip()
 #this is triggered after the game ends
-print("shoarsietn")
 while True:
 	for event in pygame.event.get():
 		if (event.type == MOUSEBUTTONDOWN):
